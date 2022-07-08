@@ -292,7 +292,7 @@ public class MainWindow : GameWindow
             Close();
         }
 
-        if (_keyState.IsKeyPressed(Keys.Up))
+        if (_keyState.IsKeyPressed(Keys.W))
         {
             
         }
