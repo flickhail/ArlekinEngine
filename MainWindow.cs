@@ -34,13 +34,16 @@ public class MainWindow : GameWindow
     private Matrix4 _modelMat;
     private Matrix4 _viewMat;
     private Matrix4 _projectionMat;
+
+    private ObjectData[] _objects;
+
     private float _FOV;
 
     private Matrix4 _transformation;
 
     private Vector3 camPos;
-    private Vector3 camTarget;
-    private Vector3 up = new(0f, 1f, 0f);
+    private Vector3 camFront;
+    private Vector3 camUp;
 
     private readonly float[] triangle =
     {
@@ -158,21 +161,23 @@ public class MainWindow : GameWindow
 
         _FOV = MathF.PI / 4;
 
-        camPos = new Vector3(0f, 0f, -3f);
-        camTarget = Vector3.Zero;
+        camPos = 3 * Vector3.UnitZ;
+        camFront = new Vector3(0f, 0f, -1);
+        camUp = Vector3.UnitY;
     }
 
     protected override void OnLoad()
     {
+        Debug.Log("Loading...");
+
+        CursorState = CursorState.Grabbed;
+
         base.OnLoad();
 
         //  Setting the default color for Clear() method
         GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
         GL.Enable(EnableCap.DepthTest);
-
-        //  Initializing the shader
-        _shader = new Shader($"{_shaderFolder}shader.vert", $"{_shaderFolder}fragShader.frag");
 
         //  Creating buffer object that holds all vertex data. BindBuffer is a global state
         _VertexBufferObject = GL.GenBuffer();
@@ -204,20 +209,35 @@ public class MainWindow : GameWindow
         //GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ElementBufferObject);
         //GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, BufferUsageHint.StaticDraw);
 
+        //  Initializing the shader
+        _shader = new Shader($"{_shaderFolder}shader.vert", $"{_shaderFolder}fragShader.frag");
+        Debug.Log("Shader initialized");
+
         //  Enabling the shader. This is global state
         _shader.Use();
+        _shader.SetUnif1("texture0", 0);
+        _shader.SetUnif1("texture1", 1);
 
         _wallTex = new Texture($"{_testPath}wall.jpg");
         _faceTex = new Texture($"{_testPath}awesomeface.png");
+        Debug.Log("Textures are loaded");
 
         _faceTex.Use(TextureUnit.Texture0);
         Texture.SetParam(TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         Texture.SetParam(TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-
-        _shader.SetUnif1("texture0", 0);
-        _shader.SetUnif1("texture1", 1);
+        Debug.Log("awesomeface.png initialized");
 
         _timer.Start();
+
+        Debug.Log("Creating objects data...");
+        _objects = new ObjectData[10];
+        for (int i = 0; i < _objects.Length; i++)
+        {
+            _objects[i] = new ObjectData(in vertices, cubePositions[i], Vector3.One, Vector3.Zero);
+            Debug.Log(_objects[i].ToString());
+        }
+        Debug.Log("Objects created");
+
     }
 
     protected override void OnRenderFrame(FrameEventArgs e)
@@ -227,26 +247,23 @@ public class MainWindow : GameWindow
         //  Clears only color data from screen and sets default color using it from GL.ClearColor()
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        float radius = 10f;
-        float camXCoord = MathF.Cos((float)_timer.Elapsed.TotalSeconds) * radius;
-        float camZCoord = MathF.Sin((float)_timer.Elapsed.TotalSeconds) * radius;
-
-        _viewMat = Matrix4.LookAt(new Vector3(camXCoord, 0f, camZCoord), Vector3.Zero, up);
-        Vector3 camTrans = new(camXCoord, 0f, -3f);
-        //CreateViewMat(_vAngleVec, _vScaleVec, camTrans);
+        _viewMat = Matrix4.LookAt(camPos, camPos + camFront, camUp);
         _projectionMat = Matrix4.Identity * Matrix4.CreatePerspectiveFieldOfView(_FOV, (float)Size.X / Size.Y, 0.1f, 100f);
+
+        //Vector3 camTrans = new(camXCoord, 0f, -3f);
+        //CreateViewMat(_vAngleVec, _vScaleVec, camTrans);
+
         float j = 0;
         //  Drawing a 10 cubes
-        for (int i = 0; i < cubePositions.Length; i++)
+        for (int i = 0; i < _objects.Length; i++)
         {
-
             j = MathF.Pow(-1, i) * i * (float)_timer.Elapsed.TotalSeconds / 2;
 
-            _modelMat = Matrix4.Identity * Matrix4.CreateRotationX(MathF.PI / 5 * j);
-            _modelMat = _modelMat * Matrix4.CreateRotationY(MathF.PI / 6 * j);
-            _modelMat = _modelMat * Matrix4.CreateRotationZ(0f);
-            _modelMat = _modelMat * Matrix4.CreateScale(1f);
-            _modelMat = _modelMat * Matrix4.CreateTranslation(cubePositions[i]);
+            _modelMat = Matrix4.Identity * Matrix4.CreateRotationX(_objects[i].Rotation.X + j);
+            _modelMat = _modelMat * Matrix4.CreateRotationY(_objects[i].Rotation.Y + j);
+            _modelMat = _modelMat * Matrix4.CreateRotationZ(_objects[i].Rotation.Z);
+            _modelMat = _modelMat * Matrix4.CreateScale(_objects[i].Scale);
+            _modelMat = _modelMat * Matrix4.CreateTranslation(_objects[i].Position);
 
             _transformation = Matrix4.Identity * _modelMat * _viewMat * _projectionMat;
 
@@ -285,31 +302,50 @@ public class MainWindow : GameWindow
 
         _keyState = KeyboardState;
 
-        float camSpeed = 0.05f;
+        float camSpeed = 2f * (float)e.Time;
 
         if (_keyState.IsKeyDown(Keys.Escape))
         {
             Close();
         }
 
-        if (_keyState.IsKeyPressed(Keys.W))
+        if (_keyState.IsKeyDown(Keys.W))
         {
-            
+            camPos += CalculateDelta(camFront, camSpeed);
         }
 
-        if (_keyState.IsKeyPressed(Keys.Left))
+        if (_keyState.IsKeyDown(Keys.S))
         {
-            
+            camPos -= CalculateDelta(camFront, camSpeed);
         }
 
-        if (_keyState.IsKeyPressed(Keys.Right))
+        if (_keyState.IsKeyDown(Keys.A))
         {
-            
+            camPos += CalculateDelta(Vector3.Cross(camUp, camFront), camSpeed);
         }
 
+        if (_keyState.IsKeyDown(Keys.D))
+        {
+            camPos -= CalculateDelta(Vector3.Cross(camUp, camFront), camSpeed);
+        }
 
-        //Console.WriteLine($"FPS: {FPS}");
+        if (_keyState.IsKeyDown(Keys.Space))
+        {
+            camPos += CalculateDelta(camUp, camSpeed);
+        }
+
+        if (_keyState.IsKeyDown(Keys.C))
+        {
+            camPos -= CalculateDelta(camUp, camSpeed);
+        }
+
+        Console.WriteLine($"FPS: {1 / e.Time}");
         //Console.WriteLine($"Render time: {_counter.Adjust(RenderTime)}");
+    }
+
+    private Vector3 CalculateDelta(Vector3 vec, float speed)
+    {
+        return Vector3.NormalizeFast(vec) * speed;
     }
 
     protected override void OnResize(ResizeEventArgs e)

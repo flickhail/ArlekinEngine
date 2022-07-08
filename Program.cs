@@ -17,7 +17,7 @@ class Program
 		var nativeWinSettings = new NativeWindowSettings()
 		{
 			Size = new Vector2i(800, 600),
-			Title = "Arlekin.Window"
+			Title = "Arlekin.Window",
 		};
 
 		using (var mainWindow = new MainWindow(GameWindowSettings.Default, nativeWinSettings))

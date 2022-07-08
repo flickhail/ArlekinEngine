@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
 
-namespace ArlekinEngine;
+using ArlekinEngine;
 
-internal static class Info
+internal static class Debug
 {
-    public static void PrintL(string msg)
+    public static void Log(string msg)
     {
         Console.WriteLine(msg);
     }
