@@ -19,7 +19,6 @@ public class MainWindow : GameWindow
 
     private int _vertColor;
 
-
     private Shader _shader;
     private readonly string _shaderFolder = "D:\\heh\\projects\\prog\\csharp\\MyNewLibrary\\Shaders\\";
     private readonly string _testPath = "D:\\heh\\projects\\prog\\csharp\\MyNewLibrary\\";
@@ -34,16 +33,11 @@ public class MainWindow : GameWindow
     private Matrix4 _modelMat;
     private Matrix4 _viewMat;
     private Matrix4 _projectionMat;
+    private Matrix4 _transformation;
 
     private ObjectData[] _objects;
 
-    private float _FOV;
-
-    private Matrix4 _transformation;
-
-    private Vector3 camPos;
-    private Vector3 camFront;
-    private Vector3 camUp;
+    private Camera camera;
 
     private readonly float[] triangle =
     {
@@ -158,12 +152,6 @@ public class MainWindow : GameWindow
     {
         _counter = new Counter(10000);
         _timer = new Stopwatch();
-
-        _FOV = MathF.PI / 4;
-
-        camPos = 3 * Vector3.UnitZ;
-        camFront = new Vector3(0f, 0f, -1);
-        camUp = Vector3.UnitY;
     }
 
     protected override void OnLoad()
@@ -238,6 +226,7 @@ public class MainWindow : GameWindow
         }
         Debug.Log("Objects created");
 
+        camera = new(-3f * Vector3.UnitZ, MathHelper.PiOver4, Size.X / (float)Size.Y);
     }
 
     protected override void OnRenderFrame(FrameEventArgs e)
@@ -247,11 +236,8 @@ public class MainWindow : GameWindow
         //  Clears only color data from screen and sets default color using it from GL.ClearColor()
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        _viewMat = Matrix4.LookAt(camPos, camPos + camFront, camUp);
-        _projectionMat = Matrix4.Identity * Matrix4.CreatePerspectiveFieldOfView(_FOV, (float)Size.X / Size.Y, 0.1f, 100f);
-
-        //Vector3 camTrans = new(camXCoord, 0f, -3f);
-        //CreateViewMat(_vAngleVec, _vScaleVec, camTrans);
+        _viewMat = camera.GetView();
+        _projectionMat = camera.GetProjection();
 
         float j = 0;
         //  Drawing a 10 cubes
@@ -300,9 +286,16 @@ public class MainWindow : GameWindow
     {
         base.OnUpdateFrame(e);
 
+        if (!IsFocused)
+        {
+            return;
+        }
+
+        camera.Sensivity = 0.1f;
+        float camSpeed = 3f * (float)e.Time;
         _keyState = KeyboardState;
 
-        float camSpeed = 2f * (float)e.Time;
+        camera.UpdateRotation(MouseState);
 
         if (_keyState.IsKeyDown(Keys.Escape))
         {
@@ -311,32 +304,32 @@ public class MainWindow : GameWindow
 
         if (_keyState.IsKeyDown(Keys.W))
         {
-            camPos += CalculateDelta(camFront, camSpeed);
+            camera.Position += CalculateDelta(camera.Front, camSpeed);
         }
 
         if (_keyState.IsKeyDown(Keys.S))
         {
-            camPos -= CalculateDelta(camFront, camSpeed);
+            camera.Position -= CalculateDelta(camera.Front, camSpeed);
         }
 
         if (_keyState.IsKeyDown(Keys.A))
         {
-            camPos += CalculateDelta(Vector3.Cross(camUp, camFront), camSpeed);
+            camera.Position += CalculateDelta(Vector3.Cross(camera.LocalUp, camera.Front), camSpeed);
         }
 
         if (_keyState.IsKeyDown(Keys.D))
         {
-            camPos -= CalculateDelta(Vector3.Cross(camUp, camFront), camSpeed);
+            camera.Position -= CalculateDelta(Vector3.Cross(camera.LocalUp, camera.Front), camSpeed);
         }
 
         if (_keyState.IsKeyDown(Keys.Space))
         {
-            camPos += CalculateDelta(camUp, camSpeed);
+            camera.Position += CalculateDelta(camera.LocalUp, camSpeed);
         }
 
         if (_keyState.IsKeyDown(Keys.C))
         {
-            camPos -= CalculateDelta(camUp, camSpeed);
+            camera.Position -= CalculateDelta(camera.LocalUp, camSpeed);
         }
 
         Console.WriteLine($"FPS: {1 / e.Time}");
@@ -345,7 +338,7 @@ public class MainWindow : GameWindow
 
     private Vector3 CalculateDelta(Vector3 vec, float speed)
     {
-        return Vector3.NormalizeFast(vec) * speed;
+        return Vector3.Normalize(vec) * speed;
     }
 
     protected override void OnResize(ResizeEventArgs e)
@@ -353,6 +346,7 @@ public class MainWindow : GameWindow
         base.OnResize(e);
 
         GL.Viewport(0, 0, Size.X, Size.Y);
+        camera.Aspect = Size.X / (float)Size.Y;
     }
 
 
