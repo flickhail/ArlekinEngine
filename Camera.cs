@@ -8,6 +8,17 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace ArlekinEngine;
 
+public enum CameraMovement
+{
+    Forward,
+    Backward,
+    Right,
+    Left,
+    Up,
+    Down
+}
+
+// A class for FPS-like camera
 internal class Camera
 {
     private Vector3 _position = Vector3.Zero;
@@ -26,6 +37,12 @@ internal class Camera
     private float _pitch = 0f;
     private float _yaw = -MathHelper.PiOver2;
 
+    private float _speed = 0f;
+
+    public Vector3 Front => _front;
+    public Vector3 Right => _right;
+    public Vector3 LocalUp => _localUp;
+
     public Camera(Vector3 position, float fov, float aspect)
     {
         _position = position;
@@ -42,9 +59,20 @@ internal class Camera
         }
     }
 
-    public Vector3 Front => _front;
-    public Vector3 Right => _right;
-    public Vector3 LocalUp => _localUp;
+    public float Speed
+    {
+        get => _speed;
+        set
+        {
+            if (value < 0f)
+            {
+                value = 0f;
+            }
+
+            _speed = value;
+        }
+    }
+
     public float Aspect
     {
         get => _aspect;
@@ -101,15 +129,40 @@ internal class Camera
         return Matrix4.CreatePerspectiveFieldOfView(_fov, _aspect, 0.1f, 100f);
     }
 
-    public void UpdateRotation(MouseState mouse)
+    public void ProcessMouseRotation(MouseState mouse)
     {
         Yaw += mouse.Delta.X * _sensivity;
         Pitch -= mouse.Delta.Y * _sensivity;
     }
 
+    public void ProcessMovementInput(CameraMovement camMove, float deltaTime)
+    {
+        switch(camMove)
+        {
+            case CameraMovement.Forward:
+                Position += _speed * deltaTime * _front;
+                break;
+            case CameraMovement.Backward:
+                Position -= _speed * deltaTime * _front;
+                break;
+            case CameraMovement.Right:
+                Position += _speed * deltaTime * Vector3.Normalize(Vector3.Cross(_front, _localUp));
+                break;
+            case CameraMovement.Left:
+                Position -= _speed * deltaTime * Vector3.Normalize(Vector3.Cross(_front, _localUp));
+                break;
+            case CameraMovement.Up:
+                Position += _speed * deltaTime * _worldUp;
+                break;
+            case CameraMovement.Down:
+                Position -= _speed * deltaTime * _worldUp;
+                break;
+        }
+    }
+
     public void Zoom()
     {
-
+        
     }
 
     // Each change in pitch and yaw should cause recalculation of camera's direction vectors

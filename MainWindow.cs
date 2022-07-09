@@ -292,10 +292,10 @@ public class MainWindow : GameWindow
         }
 
         camera.Sensivity = 0.1f;
-        float camSpeed = 3f * (float)e.Time;
+        camera.Speed = 3f;
         _keyState = KeyboardState;
 
-        camera.UpdateRotation(MouseState);
+        camera.ProcessMouseRotation(MouseState);
 
         if (_keyState.IsKeyDown(Keys.Escape))
         {
@@ -304,41 +304,43 @@ public class MainWindow : GameWindow
 
         if (_keyState.IsKeyDown(Keys.W))
         {
-            camera.Position += CalculateDelta(camera.Front, camSpeed);
+            camera.ProcessMovementInput(CameraMovement.Forward, (float)e.Time);
         }
 
         if (_keyState.IsKeyDown(Keys.S))
         {
-            camera.Position -= CalculateDelta(camera.Front, camSpeed);
+            camera.ProcessMovementInput(CameraMovement.Backward, (float)e.Time);
         }
 
         if (_keyState.IsKeyDown(Keys.A))
         {
-            camera.Position += CalculateDelta(Vector3.Cross(camera.LocalUp, camera.Front), camSpeed);
+            camera.ProcessMovementInput(CameraMovement.Left, (float)e.Time);
         }
 
         if (_keyState.IsKeyDown(Keys.D))
         {
-            camera.Position -= CalculateDelta(Vector3.Cross(camera.LocalUp, camera.Front), camSpeed);
+            camera.ProcessMovementInput(CameraMovement.Right, (float)e.Time);
         }
 
         if (_keyState.IsKeyDown(Keys.Space))
         {
-            camera.Position += CalculateDelta(camera.LocalUp, camSpeed);
+            camera.ProcessMovementInput(CameraMovement.Up, (float)e.Time);
         }
 
         if (_keyState.IsKeyDown(Keys.C))
         {
-            camera.Position -= CalculateDelta(camera.LocalUp, camSpeed);
+            camera.ProcessMovementInput(CameraMovement.Down, (float)e.Time);
         }
 
-        Console.WriteLine($"FPS: {1 / e.Time}");
+        //Console.WriteLine($"FPS: {1 / e.Time}");
         //Console.WriteLine($"Render time: {_counter.Adjust(RenderTime)}");
     }
 
-    private Vector3 CalculateDelta(Vector3 vec, float speed)
+    protected override void OnMouseWheel(MouseWheelEventArgs e)
     {
-        return Vector3.Normalize(vec) * speed;
+        base.OnMouseWheel(e);
+
+        camera.Fov -= e.OffsetY;
     }
 
     protected override void OnResize(ResizeEventArgs e)
@@ -348,7 +350,6 @@ public class MainWindow : GameWindow
         GL.Viewport(0, 0, Size.X, Size.Y);
         camera.Aspect = Size.X / (float)Size.Y;
     }
-
 
     //  Cleanup do not need at the closing application.
     //  This is just showing the way how you should do it
