@@ -18,7 +18,11 @@ public enum CameraMovement
     Down
 }
 
-// A class for FPS-like camera
+/// <summary>
+/// A class for FPS-like camera
+/// </summary>
+///
+//  All angle-related is in radians for better performance
 internal class Camera
 {
     private Vector3 _position = Vector3.Zero;
@@ -28,19 +32,25 @@ internal class Camera
     private Vector3 _localUp = Vector3.UnitY;
     private Vector3 _worldUp = Vector3.UnitY;
 
-    //  fov is in radians
     private float _fov = MathHelper.PiOver4;
     private float _aspect;
     private float _sensivity;
+    private float _speed = 0f;
 
-    // in radians for better performance
     private float _pitch = 0f;
     private float _yaw = -MathHelper.PiOver2;
 
-    private float _speed = 0f;
-
+    /// <value>
+    /// Front unit vector of the camera
+    /// </value>
     public Vector3 Front => _front;
+    /// <value>
+    /// Right unit vector of the camera
+    /// </value>
     public Vector3 Right => _right;
+    /// <value>
+    /// Local up unit vector of the camera
+    /// </value>
     public Vector3 LocalUp => _localUp;
 
     public Camera(Vector3 position, float fov, float aspect)
@@ -50,6 +60,9 @@ internal class Camera
         _aspect = aspect;
     }
 
+    /// <summary>
+    /// The position of camera in 3D space
+    /// </summary>
     public Vector3 Position
     {
         get => _position;
@@ -59,6 +72,9 @@ internal class Camera
         }
     }
 
+    /// <summary>
+    /// The camera's speed
+    /// </summary>
     public float Speed
     {
         get => _speed;
@@ -73,6 +89,9 @@ internal class Camera
         }
     }
 
+    /// <summary>
+    /// Relation of width by height of the screen
+    /// </summary>
     public float Aspect
     {
         get => _aspect;
@@ -82,6 +101,9 @@ internal class Camera
         }
     }
 
+    /// <summary>
+    /// Field of view of the camera
+    /// </summary>
     public float Fov
     {
         get => MathHelper.RadiansToDegrees(_fov);
@@ -91,6 +113,9 @@ internal class Camera
         }
     }
 
+    /// <summary>
+    /// Rotation sensivity of the camera
+    /// </summary>
     public float Sensivity
     {
         get => _sensivity;
@@ -100,6 +125,9 @@ internal class Camera
         }
     }
 
+    /// <summary>
+    /// Rotation angle around X axis in radians
+    /// </summary>
     public float Pitch
     {
         get => MathHelper.RadiansToDegrees(_pitch);
@@ -110,6 +138,9 @@ internal class Camera
         }
     }
 
+    /// <summary>
+    /// Rotation angle around Y axis in radians
+    /// </summary>
     public float Yaw
     {
         get => MathHelper.RadiansToDegrees(_yaw);
@@ -119,22 +150,45 @@ internal class Camera
         }
     }
 
+    /// <summary>
+    /// Creates matrix that transforms vectors to camera space
+    /// </summary>
+    /// <returns>Matrix of this transformation</returns>
     public Matrix4 GetView()
     {
         return Matrix4.LookAt(_position, _position + _front, _localUp);
     }
 
+    /// <summary>
+    /// Creates a perspective projection matrix
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    /// <returns>Matrix that transforms camera space to perspective view</returns>
     public Matrix4 GetProjection()
     {
         return Matrix4.CreatePerspectiveFieldOfView(_fov, _aspect, 0.1f, 100f);
     }
 
+    /// <summary>
+    /// Rotates the camera around X and Y coordinates of 3D space
+    /// </summary>
+    /// 
+    /// <remarks>
+    ///     <paramref name="mouse"/> is a required mouse data
+    /// </remarks>
     public void ProcessMouseRotation(MouseState mouse)
     {
         Yaw += mouse.Delta.X * _sensivity;
         Pitch -= mouse.Delta.Y * _sensivity;
     }
 
+    /// <summary>
+    /// Changes the position of camera in 3D space
+    /// </summary>
+    /// <remarks>
+    ///     <paramref name="camMove"/> - directional ENUM <br/>
+    ///     <paramref name="deltaTime"/> - travel time
+    /// </remarks>
     public void ProcessMovementInput(CameraMovement camMove, float deltaTime)
     {
         switch(camMove)
@@ -160,9 +214,17 @@ internal class Camera
         }
     }
 
-    public void Zoom()
+    /// <summary>
+    /// Zoom of camera <br/>
+    /// 
+    /// </summary>
+    /// 
+    /// <remarks>
+    /// <paramref name="offset"/> - offset in angles
+    /// </remarks>
+    public void Zoom(float offset)
     {
-        
+        Fov -= offset;
     }
 
     // Each change in pitch and yaw should cause recalculation of camera's direction vectors

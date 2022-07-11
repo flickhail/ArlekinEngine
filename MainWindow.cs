@@ -175,7 +175,7 @@ public class MainWindow : GameWindow
         GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
 
         //  VAO is need for creating data structure in buffer, because without VAO in a buffer would be just array of bytes
-        //  and shader can't know how should interpret these bytes as vertex position
+        //  and shader can't know how  it should interpret these bytes as vertex data
         //  so VAO is an object that keeps this data structure and tells OpenGL the way it should interpret this bytes in a buffer
         _VertexArrayObject = GL.GenVertexArray();
         GL.BindVertexArray(_VertexArrayObject);
@@ -340,7 +340,7 @@ public class MainWindow : GameWindow
     {
         base.OnMouseWheel(e);
 
-        camera.Fov -= e.OffsetY;
+        camera.Zoom(e.OffsetY);
     }
 
     protected override void OnResize(ResizeEventArgs e)
