@@ -152,6 +152,14 @@ public class MainWindow : GameWindow
     {
         _counter = new Counter(10000);
         _timer = new Stopwatch();
+        Debug.Log("Creating objects data...");
+        _objects = new ObjectData[10];
+        for (int i = 0; i < _objects.Length; i++)
+        {
+            _objects[i] = new ObjectData(ref vertices, cubePositions[i], Vector3.One, Vector3.Zero);
+            Debug.Log(_objects[i].ToString());
+        }
+        Debug.Log("Objects created");
     }
 
     protected override void OnLoad()
@@ -217,14 +225,7 @@ public class MainWindow : GameWindow
 
         _timer.Start();
 
-        Debug.Log("Creating objects data...");
-        _objects = new ObjectData[10];
-        for (int i = 0; i < _objects.Length; i++)
-        {
-            _objects[i] = new ObjectData(in vertices, cubePositions[i], Vector3.One, Vector3.Zero);
-            Debug.Log(_objects[i].ToString());
-        }
-        Debug.Log("Objects created");
+        
 
         camera = new(-3f * Vector3.UnitZ, MathHelper.PiOver4, Size.X / (float)Size.Y);
     }
@@ -239,7 +240,7 @@ public class MainWindow : GameWindow
         _viewMat = camera.GetView();
         _projectionMat = camera.GetProjection();
 
-        float j = 0;
+        float j;
         //  Drawing a 10 cubes
         for (int i = 0; i < _objects.Length; i++)
         {
