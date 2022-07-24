@@ -17,15 +17,12 @@ public class MainWindow : GameWindow
 
     private KeyboardState _keyState;
 
-    private int _vertColor;
-
     private Shader _shader;
     private readonly string _shaderFolder = "D:\\heh\\projects\\prog\\csharp\\MyNewLibrary\\Shaders\\";
-    private readonly string _testPath = "D:\\heh\\projects\\prog\\csharp\\MyNewLibrary\\";
+    private readonly string _texturePath = "D:\\heh\\projects\\prog\\csharp\\MyNewLibrary\\Textures\\";
     private Counter _counter;
 
     private Stopwatch _timer;
-    private double _time;
 
     private Texture _wallTex;
     private Texture _faceTex;
@@ -35,9 +32,10 @@ public class MainWindow : GameWindow
     private Matrix4 _projectionMat;
     private Matrix4 _transformation;
 
-    private ObjectData[] _objects;
+    private ObjectData[] _cubes;
 
     private Camera camera;
+    private ShapeObject _shape;
 
     private readonly float[] triangle =
     {
@@ -46,7 +44,7 @@ public class MainWindow : GameWindow
         0.5f, -0.5f, 0.0f
     };
 
-    float[] vertices = 
+    float[] _cubeVertices = 
     {
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
@@ -152,49 +150,54 @@ public class MainWindow : GameWindow
     {
         _counter = new Counter(10000);
         _timer = new Stopwatch();
-        Debug.Log("Creating objects data...");
-        _objects = new ObjectData[10];
-        for (int i = 0; i < _objects.Length; i++)
-        {
-            _objects[i] = new ObjectData(ref vertices, cubePositions[i], Vector3.One, Vector3.Zero);
-            Debug.Log(_objects[i].ToString());
-        }
-        Debug.Log("Objects created");
     }
 
     protected override void OnLoad()
     {
         Debug.Log("Loading...");
 
+        base.OnLoad();
+
         CursorState = CursorState.Grabbed;
 
-        base.OnLoad();
+        Debug.Log("Creating objects data...");
+        _cubes = new ObjectData[10];
+        for (int i = 0; i < _cubes.Length; i++)
+        {
+            _cubes[i] = new ObjectData(cubePositions[i], Vector3.One, Vector3.Zero);
+            Debug.Log(_cubes[i].ToString());
+        }
+        Debug.Log("Objects created");
 
         //  Setting the default color for Clear() method
         GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
         GL.Enable(EnableCap.DepthTest);
 
+        //_shape = new ShapeObject(_cubeVertices, 5 * sizeof(float));
+        //_shape.SetAttribute(3, VertexAttribPointerType.Float, false);
+        //_shape.SetAttribute(2, VertexAttribPointerType.Float, false);
+
         //  Creating buffer object that holds all vertex data. BindBuffer is a global state
-        _VertexBufferObject = GL.GenBuffer();
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _VertexBufferObject);
+        //_VertexBufferObject = GL.GenBuffer();
+        //GL.BindBuffer(BufferTarget.ArrayBuffer, _VertexBufferObject);
 
-        //  Creating array buffer on GPU that managed by buffer object
-        GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+        ////  Creating array buffer on GPU that managed by buffer object
+        //GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * sizeof(float), _vertices, BufferUsageHint.StaticDraw);
 
-        //  VAO is need for creating data structure in buffer, because without VAO in a buffer would be just array of bytes
-        //  and shader can't know how  it should interpret these bytes as vertex data
-        //  so VAO is an object that keeps this data structure and tells OpenGL the way it should interpret this bytes in a buffer
-        _VertexArrayObject = GL.GenVertexArray();
-        GL.BindVertexArray(_VertexArrayObject);
+        ////  VAO is need for creating data structure in buffer, because without VAO in a buffer would be just array of bytes
+        ////  and shader can't know how  it should interpret these bytes as vertex data
+        ////  so VAO is an object that keeps this data structure and tells OpenGL the way it should interpret this bytes in a buffer
+        //_VertexArrayObject = GL.GenVertexArray();
+        //GL.BindVertexArray(_VertexArrayObject);
 
-        //  This represents the data structure. There was BindVertexArray() call, so OpenGL state is moved to keeping this
-        //  representation in the VAO object
-        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 0);
-        GL.EnableVertexAttribArray(0);
+        ////  This represents the data structure. There was BindVertexArray() call, so OpenGL state is moved to keeping this
+        ////  representation in the VAO object
+        //GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 0);
+        //GL.EnableVertexAttribArray(0);
 
-        GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
-        GL.EnableVertexAttribArray(1);
+        //GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
+        //GL.EnableVertexAttribArray(1);
 
         //GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 5 * sizeof(float));
         //GL.EnableVertexAttribArray(2);
@@ -206,7 +209,7 @@ public class MainWindow : GameWindow
         //GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, BufferUsageHint.StaticDraw);
 
         //  Initializing the shader
-        _shader = new Shader($"{_shaderFolder}shader.vert", $"{_shaderFolder}fragShader.frag");
+        _shader = new Shader($"{_shaderFolder}shader.vert", $"{_shaderFolder}shader.frag");
         Debug.Log("Shader initialized");
 
         //  Enabling the shader. This is global state
@@ -214,20 +217,17 @@ public class MainWindow : GameWindow
         _shader.SetUnif1("texture0", 0);
         _shader.SetUnif1("texture1", 1);
 
-        _wallTex = new Texture($"{_testPath}wall.jpg");
-        _faceTex = new Texture($"{_testPath}awesomeface.png");
+        _wallTex = new Texture($"{_texturePath}wall.jpg");
+        _faceTex = new Texture($"{_texturePath}awesomeface.png");
         Debug.Log("Textures are loaded");
 
-        _faceTex.Use(TextureUnit.Texture0);
         Texture.SetParam(TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         Texture.SetParam(TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
         Debug.Log("awesomeface.png initialized");
 
+        camera = new (3f * Vector3.UnitZ, 45, Size.X / (float)Size.Y);
+
         _timer.Start();
-
-        
-
-        camera = new(-3f * Vector3.UnitZ, MathHelper.PiOver4, Size.X / (float)Size.Y);
     }
 
     protected override void OnRenderFrame(FrameEventArgs e)
@@ -242,15 +242,15 @@ public class MainWindow : GameWindow
 
         float j;
         //  Drawing a 10 cubes
-        for (int i = 0; i < _objects.Length; i++)
+        for (int i = 0; i < _cubes.Length; i++)
         {
             j = MathF.Pow(-1, i) * i * (float)_timer.Elapsed.TotalSeconds / 2;
 
-            _modelMat = Matrix4.Identity * Matrix4.CreateRotationX(_objects[i].Rotation.X + j);
-            _modelMat = _modelMat * Matrix4.CreateRotationY(_objects[i].Rotation.Y + j);
-            _modelMat = _modelMat * Matrix4.CreateRotationZ(_objects[i].Rotation.Z);
-            _modelMat = _modelMat * Matrix4.CreateScale(_objects[i].Scale);
-            _modelMat = _modelMat * Matrix4.CreateTranslation(_objects[i].Position);
+            _modelMat = Matrix4.Identity * Matrix4.CreateRotationX(_cubes[i].Rotation.X + j);
+            _modelMat = _modelMat * Matrix4.CreateRotationY(_cubes[i].Rotation.Y + j);
+            _modelMat = _modelMat * Matrix4.CreateRotationZ(_cubes[i].Rotation.Z);
+            _modelMat = _modelMat * Matrix4.CreateScale(_cubes[i].Scale);
+            _modelMat = _modelMat * Matrix4.CreateTranslation(_cubes[i].Position);
 
             _transformation = Matrix4.Identity * _modelMat * _viewMat * _projectionMat;
 
@@ -259,7 +259,9 @@ public class MainWindow : GameWindow
             _wallTex.Use(TextureUnit.Texture0);
             _faceTex.Use(TextureUnit.Texture1);
 
-            GL.BindVertexArray(_VertexArrayObject);
+            _shape.Bind();
+            //  Binding the VAO
+            //GL.BindVertexArray(_VertexArrayObject);
             GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
         }
 
@@ -271,7 +273,6 @@ public class MainWindow : GameWindow
         //if (_vertColor == -1) throw new Exception();
         //GL.Uniform4(_vertColor, _redComp, _greenComp, _blueComp, 0.0f);
 
-        //  Binding the VAO
 
         //  Draw the data from VAO using "shader"
         //  This draws all vertices stored in VBO

@@ -10,14 +10,12 @@ namespace ArlekinEngine;
 /// </summary>
 internal struct ObjectData
 {
-    public float[] VertData;
     public Vector3 Position;
     public Vector3 Scale;
     public Vector3 Rotation;
 
-    public ObjectData(ref float[] data, Vector3 pos, Vector3 sc, Vector3 rot)
+    public ObjectData(Vector3 pos, Vector3 sc, Vector3 rot)
     {
-        VertData = data;
         Position = pos;
         Scale = sc;
         Rotation = rot;

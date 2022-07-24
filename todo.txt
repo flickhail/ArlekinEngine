@@ -1,0 +1,39 @@
+﻿*********************************
+TO DO LIST FOR THE GAME
+
+
+[x] come up with an idea	>>	2D minecraft-like with crafting, combat system, enemies and dungeons
+[ ] basic rendering system
+[ ] basic world generation
+[ ] playable character's model in 2D art
+[ ]	user input
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]
+[ ]

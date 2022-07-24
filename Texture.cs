@@ -16,6 +16,12 @@ internal class Texture
 {
     private int Handle;
 
+    /// <summary>
+    /// Creates a texture
+    /// </summary>
+    /// <remarks>
+    /// Changes the texture context
+    /// </remarks>
     public Texture(string path)
     {
         Handle = GL.GenTexture();
@@ -47,18 +53,15 @@ internal class Texture
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
 
         GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+        Debug.Log($"Texture [{Handle}] created");
     }
 
 
-
     /// <summary>
-    /// Sets the current texture as active
+    /// Changes the current texture context
     /// </summary>
-    /// <param name="texUnit">The texture unit at wich you want to set the texture</param>
     /// <remarks>
-    ///   <para>
-    ///   TextureTarget is Texture2D
-    ///   </para>
+    /// <paramref name="texUnit"/> - the texture unit at wich you want to set the texture
     /// </remarks>
     public void Use(TextureUnit texUnit)
     {
@@ -67,10 +70,11 @@ internal class Texture
     }
 
     /// <summary>
-    /// Sets the texture parameter "parName" to "value"
+    /// Sets the texture parameter
     /// </summary>
-    /// <param name="parName">The name of the parameter</param>
-    /// <param name="value">The value to set</param>
+    /// <remarks>
+    /// Needs the texture context
+    /// </remarks>
     public static void SetParam(TextureParameterName parName, int value)
     {
         GL.TexParameter(TextureTarget.Texture2D, parName, value);

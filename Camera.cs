@@ -53,10 +53,18 @@ internal class Camera
     /// </value>
     public Vector3 LocalUp => _localUp;
 
+    /// <summary>
+    /// Creation of camera object
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="position"/> - initial position of camera in 3D space <br/>
+    /// <paramref name="fov"/> - camera's field of view in degrees <br/>
+    /// <paramref name="aspect"/> - the ratio of width to height
+    /// </remarks>
     public Camera(Vector3 position, float fov, float aspect)
     {
         _position = position;
-        _fov = fov;
+        _fov = fov * MathF.PI / 180;
         _aspect = aspect;
     }
 

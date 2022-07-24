@@ -18,11 +18,20 @@ class Program
 		{
 			Size = new Vector2i(800, 600),
 			Title = "Arlekin.Window",
+			WindowState = WindowState.Fullscreen,
+			
 		};
 
-		using (var mainWindow = new MainWindow(GameWindowSettings.Default, nativeWinSettings))
+		var gameWinSettings = new GameWindowSettings()
+		{
+			//RenderFrequency = 60.0f,
+		};
+
+		//using (var mainWindow = new MainWindow(GameWindowSettings.Default, nativeWinSettings))
+		using(var window2 = new Window2(GameWindowSettings.Default, nativeWinSettings))
         {
-			mainWindow.Run();
+			//mainWindow.Run();
+			window2.Run();
         }
 	}
 }

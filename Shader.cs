@@ -12,6 +12,12 @@ internal class Shader : IDisposable
     public readonly int Handle;
     private bool disposed = false;
 
+    /// <summary>
+    /// Create and compile the vert and the frag shaders
+    /// </summary>
+    /// <remarks>
+    /// Doesn't change the shader context
+    /// </remarks>
     public Shader(string vertexPath, string fragmentPath)
     {
         int VertexShader;
@@ -44,8 +50,8 @@ internal class Shader : IDisposable
         catch (InvalidDataException e)
         {
             Console.WriteLine("Render compilation error: " + e.Message);
+            return;
         }
-        
 
 
         //      Creating a whole shader program from it's vertex and fragment parts
@@ -62,19 +68,48 @@ internal class Shader : IDisposable
         GL.DetachShader(Handle, FragmentShader);
         GL.DeleteShader(VertexShader);
         GL.DeleteShader(FragmentShader);
+
+        Debug.Log($"Shader [{Handle}] created");
     }
 
+    /// <summary>
+    /// Change current shader context
+    /// </summary>
     public void Use()
     {
         GL.UseProgram(Handle);
     }
 
+    /// <summary>
+    /// Sends the int value to the uniform field of the shader
+    /// </summary>
+    /// <remarks>
+    /// Needs shader context
+    /// </remarks>
     public void SetUnif1(string varName, int value)
     {
         int loc = GL.GetUniformLocation(Handle, varName);
         GL.Uniform1(loc, value);
     }
 
+    /// <summary>
+    /// Sends the vec3 value to the uniform field of the shader
+    /// </summary>
+    /// <remarks>
+    /// Needs shader context
+    /// </remarks>
+    public void SetUnif3(string varName, Vector3 vec)
+    {
+        int loc = GL.GetUniformLocation(Handle, varName);
+        GL.Uniform3(loc, ref vec);
+    }
+
+    /// <summary>
+    /// Sends the Matrix4 data to the uniform field of the shader
+    /// </summary>
+    /// <remarks>
+    /// Needs shader context
+    /// </remarks>
     public void SetUnifMat4(string varName, bool transpose, ref Matrix4 value)
     {
         int loc = GL.GetUniformLocation(Handle, varName);
